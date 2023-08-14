@@ -1,6 +1,8 @@
-use rsa::{RSAPublicKey, PaddingScheme, PublicKey, RsaPublicKey};
+use rsa::{  RsaPublicKey};
+use rsa::traits::PaddingScheme;
 use base64::encode;
 use std::error::Error;
+use rsa::pkcs8::der::DecodePem;
 
 pub struct Configuration {
     user_agent: String,
@@ -19,6 +21,9 @@ impl Configuration {
             access_token: None,
             auth: None,
         }
+    }
+    pub fn get_user_agent(&self) -> String {
+        self.user_agent.clone()
     }
 
     pub fn set_api_key(&mut self, api_key: String) -> Result<(), Box<dyn Error>> {
@@ -53,7 +58,7 @@ impl Configuration {
     fn encrypt_with_public_key(&self, public_key: &str, api_key: &str) -> Result<Vec<u8>, Box<dyn Error>> {
         let rsa_pk = RsaPublicKey::from_pem(public_key.as_bytes())?;
         let padding = PaddingScheme::new_pkcs1v15_encrypt();
-        let encrypted_data = rsa_pk.encrypt(padding, api_key.as_bytes())?;
+        let encrypted_data = rsa_pk.encrypt(padding, api_key.as_bytes(), &[])?;
         Ok(encrypted_data)
     }
 }
