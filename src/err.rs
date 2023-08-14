@@ -1,3 +1,4 @@
+use std::fmt;
 
 #[derive(Debug)]
 pub enum MPesaError {
@@ -83,6 +84,14 @@ impl MPesaError {
         }
     }
 }
+
+impl fmt::Display for MPesaError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+impl std::error::Error for MPesaError {}
 
 
 #[cfg(test)]
