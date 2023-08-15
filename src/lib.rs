@@ -13,6 +13,7 @@ use std::collections::HashMap;
 use serde::Deserialize;
 use serde_json::json;
 
+
 const BASE_URL: &str = "https://api.sandbox.vm.co.mz";
 
 
@@ -69,19 +70,22 @@ impl MPesaClient {
         let request_builder = self.headers.iter().fold(request_builder, |acc, (k, v)| acc.header(k, v));
 
         let res = request_builder.send().await?;
+        let status = res.status().as_u16();
 
         if res.status().is_success() {
-            let payment_response: MPesaPaymentResponse = res.json().await?;
+            let status = res.status().as_u16();
+            let body_text = res.text().await?;
+            let payment_response: MPesaPaymentResponse = serde_json::from_str(&body_text)?;
 
             // Check if the response code indicates a successful transaction
             if payment_response.output_ResponseCode == "INS-0" {
                 Ok(payment_response)
             } else {
-                Err(err::MPesaError::from_code(res.status().as_u16(), &payment_response.output_ResponseDesc))
+                Err(err::MPesaError::from_code(status, &payment_response.output_ResponseDesc))
             }
         } else {
             let error_text: String = res.text().await.unwrap_or_default();
-            Err(err::MPesaError::from_code(res.status().as_u16(), &error_text))
+            Err(err::MPesaError::from_code(status, &error_text))
         }
     }
 }
