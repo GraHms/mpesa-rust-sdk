@@ -1,9 +1,7 @@
-use rsa::{  RsaPublicKey};
-use rsa::traits::PaddingScheme;
+use rsa::{RSAPublicKey, PaddingScheme, PublicKey};
 use base64::encode;
 use std::error::Error;
-use rsa::pkcs8::der::DecodePem;
-use pem::Pem;
+use rand::rngs::OsRng;
 
 
 pub struct Configuration {
@@ -57,13 +55,23 @@ impl Configuration {
         format!("-----BEGIN PUBLIC KEY-----\n{}\n-----END PUBLIC KEY-----", public_key)
     }
 
-    fn encrypt_with_public_key(&self, public_key: &str, api_key: &str) -> Result<Vec<u8>, Box<dyn Error>> {
-        let pem = Pem::parse(public_key)?;
-        let rsa_pk = RsaPublicKey::from_pkcs1(&pem.contents)?;
-        let padding = PaddingScheme::PKCS1v15;
-        let encrypted_data = rsa_pk.encrypt(padding, api_key.as_bytes(), &[])?;
+
+
+    fn encrypt_with_public_key(&self, formatted_public_key: &str, api_key: &str) -> Result<Vec<u8>, Box<dyn Error>> {
+        // Parse the PEM string
+        let pem = pem::parse(formatted_public_key)?;
+
+        // Import the public key
+        let rsa_public_key = RSAPublicKey::from_pkcs1(&pem.contents)?;
+
+        // Encrypt the API key
+        let mut rng = OsRng::default();
+        let encrypted_data = rsa_public_key.encrypt(&mut rng, PaddingScheme::PKCS1v15Encrypt, api_key.as_bytes())?;
+
         Ok(encrypted_data)
     }
+
+
 
 }
 
