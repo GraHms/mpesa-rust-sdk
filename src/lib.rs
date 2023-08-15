@@ -8,10 +8,12 @@ extern crate reqwest;
 extern crate rsa;
 extern crate base64;
 extern crate serde;
+extern crate pem;
 
 use std::collections::HashMap;
 use serde::Deserialize;
 use serde_json::json;
+
 
 
 const BASE_URL: &str = "https://api.sandbox.vm.co.mz";
@@ -66,7 +68,7 @@ impl MPesaClient {
 
         let body = serde_json::to_string(&body_data)?;
 
-        let request_builder = client.post(&format!("{}{}", self.base_url, self.path));
+        let request_builder = client.post(&format!("{}{}", self.base_url, self.path)).body(body);
         let request_builder = self.headers.iter().fold(request_builder, |acc, (k, v)| acc.header(k, v));
 
         let res = request_builder.send().await?;

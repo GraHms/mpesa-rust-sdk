@@ -3,6 +3,8 @@ use rsa::traits::PaddingScheme;
 use base64::encode;
 use std::error::Error;
 use rsa::pkcs8::der::DecodePem;
+use pem::Pem;
+
 
 pub struct Configuration {
     user_agent: String,
@@ -56,11 +58,13 @@ impl Configuration {
     }
 
     fn encrypt_with_public_key(&self, public_key: &str, api_key: &str) -> Result<Vec<u8>, Box<dyn Error>> {
-        let rsa_pk = RsaPublicKey::from_pem(public_key.as_bytes())?;
-        let padding = PaddingScheme::new_pkcs1v15_encrypt();
+        let pem = Pem::parse(public_key)?;
+        let rsa_pk = RsaPublicKey::from_pkcs1(&pem.contents)?;
+        let padding = PaddingScheme::PKCS1v15;
         let encrypted_data = rsa_pk.encrypt(padding, api_key.as_bytes(), &[])?;
         Ok(encrypted_data)
     }
+
 }
 
 
