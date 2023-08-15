@@ -2,51 +2,18 @@
 
 mod err;
 mod token;
+mod data;
 
 extern crate reqwest;
 extern crate rsa;
 extern crate base64;
+extern crate serde;
 
 use std::collections::HashMap;
+use serde::Deserialize;
+use serde_json::json;
 
 const BASE_URL: &str = "https://api.sandbox.vm.co.mz";
-#[derive(Debug, Deserialize)]
-pub struct MPesaPaymentResponse {
-    output_ConversationID: String,
-    output_ResponseCode: String,
-    output_ResponseDesc: String,
-    output_ThirdPartyReference: String,
-    output_TransactionID: String,
-}
-
-#[derive(Debug, Serialize)]
-pub struct B2CInput {
-    input_TransactionReference: String,
-    input_CustomerMSISDN: String,
-    input_Amount: String,
-    input_ThirdPartyReference: String,
-    input_ServiceProviderCode: String,
-}
-
-impl B2CInput{
-    pub fn set_transaction_reference(&mut self, transaction_reference: String) {
-        self.input_TransactionReference = transaction_reference;
-    }
-    pub fn set_customer_msisdn(&mut self, customer_msisdn: String) {
-        self.input_CustomerMSISDN = customer_msisdn;
-    }
-    pub fn set_amount(&mut self, amount: String) {
-        self.input_Amount = amount;
-    }
-    pub fn set_third_party_reference(&mut self, third_party_reference: String) {
-        self.input_ThirdPartyReference = third_party_reference;
-    }
-    pub fn set_service_provider_code(&mut self, service_provider_code: String) {
-        self.input_ServiceProviderCode = service_provider_code;
-    }
-
-
-}
 
 
 pub struct MPesaClient {
@@ -86,9 +53,17 @@ impl MPesaClient {
         self.parameters.insert(key.into(), value.into());
     }
 
-    pub async fn b2c_payment(&self) -> Result<MPesaPaymentResponse, err::MPesaError> {
+    pub async fn b2c_payment(&self, payment_request: &data::B2CInput) -> Result<MPesaPaymentResponse, err::MPesaError> {
         let client = reqwest::Client::new();
-        let body = serde_json::to_string(&self.parameters)?;
+        let body_data = json!({
+            "input_TransactionReference": payment_request.transaction_reference(),
+            "input_CustomerMSISDN": payment_request.customer_msisdn(),
+            "input_Amount": payment_request.amount(),
+            "input_ThirdPartyReference": payment_request.third_party_reference(),
+            "input_ServiceProviderCode": payment_request.service_provider_code(),
+        });
+
+        let body = serde_json::to_string(&body_data)?;
 
         let request_builder = client.post(&format!("{}{}", self.base_url, self.path));
         let request_builder = self.headers.iter().fold(request_builder, |acc, (k, v)| acc.header(k, v));
@@ -109,4 +84,13 @@ impl MPesaClient {
             Err(err::MPesaError::from_code(res.status().as_u16(), &error_text))
         }
     }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct MPesaPaymentResponse {
+    output_ConversationID: String,
+    output_ResponseCode: String,
+    output_ResponseDesc: String,
+    output_ThirdPartyReference: String,
+    output_TransactionID: String,
 }

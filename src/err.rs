@@ -2,7 +2,7 @@ use std::fmt;
 
 #[derive(Debug)]
 pub enum MPesaError {
-    JSONSerializationError(serde_json::Error),
+    NetworkError(reqwest::Error),
     Successful(String),
     InternalError,
     InvalidAPIKey,
@@ -38,11 +38,12 @@ pub enum MPesaError {
     LanguageCodeInvalid,
     Other(u16, String),
 }
-impl From<serde_json::Error> for MPesaError {
-    fn from(error: serde_json::Error) -> Self {
-        MPesaError::JSONSerializationError(error)
+impl From<reqwest::Error> for MPesaError {
+    fn from(error: reqwest::Error) -> Self {
+        MPesaError::NetworkError(error)
     }
 }
+
 impl MPesaError {
 
     pub fn from_code(code: u16, description: &str) -> Self {
