@@ -1,7 +1,7 @@
 // src/lib.rs
 
 mod err;
-mod token;
+mod config;
 mod data;
 
 extern crate reqwest;
@@ -20,7 +20,7 @@ const BASE_URL: &str = "https://api.sandbox.vm.co.mz";
 
 
 pub struct MPesaClient {
-    configuration : token::Configuration,
+    configuration : config::Configuration,
     api_key: String,
     public_key: String,
     base_url: String,
@@ -32,7 +32,7 @@ pub struct MPesaClient {
 impl MPesaClient {
     pub fn new(api_key: String, public_key: String) -> Self {
         let mut client = MPesaClient {
-            configuration: token::Configuration::new(),
+            configuration: config::Configuration::new(),
             api_key,
             public_key,
             base_url: BASE_URL.to_string(),
@@ -40,8 +40,8 @@ impl MPesaClient {
             headers: HashMap::new(),
             parameters: HashMap::new(),
         };
-        client.configuration.set_api_key(client.api_key.clone()).unwrap();
-        client.configuration.set_public_key(client.public_key.clone()).unwrap();
+        client.configuration.set_api_key(client.api_key.clone());
+        client.configuration.set_public_key(client.public_key.clone());
         client.headers.insert("User-Agent".to_string(), client.configuration.get_user_agent().clone());
         client.headers.insert("Content-Type".to_string(), "application/json".to_string());
         client.headers.insert("Authorization".to_string(), format!("Bearer {}", client.configuration.get_token().unwrap()));
