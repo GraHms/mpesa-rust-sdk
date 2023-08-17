@@ -8,7 +8,6 @@ extern crate reqwest;
 extern crate rsa;
 extern crate base64;
 extern crate serde;
-extern crate pem;
 
 use std::collections::HashMap;
 use serde::Deserialize;
@@ -44,7 +43,12 @@ impl MPesaClient {
         client.configuration.set_public_key(client.public_key.clone());
         client.headers.insert("User-Agent".to_string(), client.configuration.get_user_agent().clone());
         client.headers.insert("Content-Type".to_string(), "application/json".to_string());
-        client.headers.insert("Authorization".to_string(), format!("Bearer {}", client.configuration.get_token().unwrap()));
+        if let Some(token) = client.configuration.get_token() {
+            client.headers.insert("Authorization".to_string(), format!("Bearer {}", token));
+        } else {
+            // Handle the error or gracefully fail here.
+            panic!("Failed to generate access token");
+        }
         client
     }
 
@@ -100,3 +104,4 @@ pub struct MPesaPaymentResponse {
     output_ThirdPartyReference: String,
     output_TransactionID: String,
 }
+
