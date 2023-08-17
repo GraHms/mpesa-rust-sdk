@@ -40,11 +40,11 @@ use mpesa_sdk::{MPesaClient, data::B2CInput};
 let client = MPesaClient::new("YOUR_API_KEY", "YOUR_PUBLIC_KEY");
 let mut payment_request = B2CInput::new();
 
-payment_request.set_transaction_reference("REFERENCE");
-payment_request.set_customer_msisdn("MSISDN");
-payment_request.set_amount("AMOUNT");
+payment_request.set_transaction_reference("TRANSACTION_REF");
+payment_request.set_customer_msisdn("258848255237");
+payment_request.set_amount("1000");
 payment_request.set_third_party_reference("THIRD_PARTY_REF");
-payment_request.set_service_provider_code("SERVICE_PROVIDER_CODE");
+payment_request.set_service_provider_code("171717");
 
 let response = client.b2c_payment(&payment_request);
 
